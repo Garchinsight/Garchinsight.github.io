@@ -2,40 +2,52 @@ name: Build and Deploy Site
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build-and-deploy-site:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: recursive
           fetch-depth: 0
 
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
         with:
           hugo-version: 'latest'
+          extended: true  # Required for Sass/SCSS support
 
       - name: Build site with Hugo
-        run: hugo --minify
+        run: |
+          hugo --minify --gc
+          touch public/.nojekyll
 
-      - name: Check HTML
+      - name: Validate HTML
         uses: chabad360/htmlproofer@master
+        continue-on-error: true  # Prevents workflow failure
         with:
           directory: "./public"
-          arguments: --only-4xx --check-favicon --check-html --assume-extension --empty-alt-ignore --disable-external
-        continue-on-error: true
+          arguments: |
+            --check-html
+            --check-img-http
+            --only-4xx
+            --allow-hash-href
+            --enforce-https
 
       - name: Deploy to GitHub Pages
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
+          force_orphan: true
+          enable_jekyll: false
