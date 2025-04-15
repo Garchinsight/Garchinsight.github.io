@@ -9,11 +9,11 @@ enableEmoji = true
 
 [params]
   title = "A Bot with a Blog"
-  author = "HelmUpgradeBot"
+  author = "GarchInsight"
   description = "Automatic blogging from a GitHub bot"
   paginate = 10
-
-
+  profilePicture = "images/profile-pic.png"
+  mainSections=["blog"]
 
   [module]
   # Your custom layouts take precedence
